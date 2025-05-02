@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heap Sort Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        #sortButton {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Heap Sort Visualization</h1>
+    <canvas id="canvas" width="800" height="400"></canvas>
+    <br>
+    <button id="sortButton">Start Sorting</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sortButton = document.getElementById('sortButton');
+        const barWidth = 15;
+        const spaceBetweenBars = 3;
+        
+        // Updated array with more numbers
+        let arr = [60, 10, 50, 20, 30, 40, 80, 70, 90, 100, 35, 65, 85, 95, 55, 15, 25, 45, 75, 5, 120, 110, 130];
+        let animationFrame;
+
+        function drawArray() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < arr.length; i++) {
+                const height = arr[i];
+                const x = i * (barWidth + spaceBetweenBars);
+                const y = canvas.height - height;
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(x, y, barWidth, height);
+            }
+        }
+
+        function heapify(arr, n, i, callback) {
+            let largest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            
+            if (left < n && arr[left] > arr[largest]) {
+                largest = left;
+            }
+
+            if (right < n && arr[right] > arr[largest]) {
+                largest = right;
+            }
+
+            if (largest !== i) {
+                [arr[i], arr[largest]] = [arr[largest], arr[i]]; // Swap
+
+                // Recurse to heapify the affected sub-tree
+                drawArray();
+                setTimeout(() => heapify(arr, n, largest, callback), 300);
+                return;
+            }
+            callback();
+        }
+
+        function heapSort(arr, callback) {
+            const n = arr.length;
+
+            // Build a max heap
+            for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+                heapify(arr, n, i, () => {});
+            }
+
+            // One by one extract elements from the heap
+            let i = n - 1;
+            function sortLoop() {
+                if (i <= 0) {
+                    callback();
+                    return;
+                }
+
+                // Move the current root to the end
+                [arr[0], arr[i]] = [arr[i], arr[0]]; // Swap root and last element
+                drawArray();
+                
+                setTimeout(() => {
+                    heapify(arr, i, 0, () => {
+                        i--;
+                        sortLoop();
+                    });
+                }, 500);
+            }
+
+            sortLoop();
+        }
+
+        function startSorting() {
+            sortButton.disabled = true;
+            heapSort(arr, () => {
+                sortButton.disabled = false;
+                alert('Sorting Completed!');
+            });
+        }
+
+        sortButton.addEventListener('click', startSorting);
+        drawArray(); // Initial array visualization
+    </script>
+</body>
+</html>
