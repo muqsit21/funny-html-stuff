@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bogo-Weave Sort Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .bar {
+            display: inline-block;
+            width: 20px;
+            margin: 2px;
+            background-color: lightblue;
+        }
+        .sorted {
+            background-color: lightgreen;
+        }
+        .unsorted {
+            background-color: lightcoral;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bogo-Weave Sort Visualization</h1>
+    <div id="bars"></div>
+    <button onclick="startSorting()">Start Sorting</button>
+
+    <script>
+        let numbers = [];
+        let barElements = [];
+
+        // Generate an initial random list of numbers
+        function generateRandomList(size = 20) {
+            numbers = [];
+            for (let i = 0; i < size; i++) {
+                numbers.push(i + 1);
+            }
+            shuffle(numbers);
+            createBars();
+        }
+
+        // Shuffle the array (Bogo Sort shuffle)
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]]; // Swap elements
+            }
+        }
+
+        // Create the bars representing the array
+        function createBars() {
+            const barsContainer = document.getElementById('bars');
+            barsContainer.innerHTML = ''; // Clear previous bars
+
+            numbers.forEach((num, index) => {
+                let bar = document.createElement('div');
+                bar.classList.add('bar', 'unsorted');
+                bar.style.height = `${num * 10}px`; // Scale the height
+                barsContainer.appendChild(bar);
+                barElements.push(bar);
+            });
+        }
+
+        // Bogo Sort implementation for a part of the list
+        function bogoSort(arr) {
+            let isSorted = false;
+            while (!isSorted) {
+                shuffle(arr); // Shuffle the array
+                isSorted = true;
+                for (let i = 1; i < arr.length; i++) {
+                    if (arr[i] < arr[i - 1]) {
+                        isSorted = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Apply the Bogo-Weave Sort
+        async function bogoWeaveSort() {
+            let gapSizes = [1, 2, 3, 5]; // Different gap sizes for the weave
+            let stepDelay = 100; // Delay in ms for animation
+
+            for (let gap of gapSizes) {
+                let startIndex = 0;
+                let endIndex = gap;
+                while (endIndex <= numbers.length) {
+                    // Get the sublist defined by the gap
+                    let sublist = numbers.slice(startIndex, endIndex);
+                    bogoSort(sublist); // Sort the sublist with Bogo Sort
+
+                    // Apply the sorted sublist back to the original list
+                    for (let i = startIndex; i < endIndex; i++) {
+                        numbers[i] = sublist[i - startIndex];
+                    }
+
+                    // Visualize the change
+                    await visualizeSorting();
+                    startIndex += gap;
+                    endIndex += gap;
+                }
+            }
+        }
+
+        // Visualize sorting process
+        function visualizeSorting() {
+            return new Promise(resolve => {
+                let sortedCount = 0;
+                numbers.forEach((num, index) => {
+                    barElements[index].style.height = `${num * 10}px`;
+                    if (barElements[index].classList.contains('unsorted')) {
+                        barElements[index].classList.remove('unsorted');
+                        barElements[index].classList.add('sorted');
+                        sortedCount++;
+                    }
+                });
+                if (sortedCount === numbers.length) {
+                    resolve();
+                }
+            });
+        }
+
+        // Start sorting and visualizing
+        function startSorting() {
+            generateRandomList();
+            bogoWeaveSort();
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            generateRandomList();
+        };
+    </script>
+</body>
+</html>
